@@ -51,8 +51,8 @@ export default function MainPage({ route, navigation }) {
         const currentDay = getCurrentDay(); //오늘의 요일 받아오기
         console.log("날짜 :" + currentDay); // 요일 확인 로그
         // 현재 요일에 맞는 데이터 설정
-        setCurrentDayData(parsedData["Monday"]); //오늘의 요일에 맞는 데이터를 json에서 추출 나중에 currentDay로 다시 바꾸기
-        const weekstable = parsedData["Monday"];
+        setCurrentDayData(parsedData[currentDay]); //오늘의 요일에 맞는 데이터를 json에서 추출 나중에 currentDay로 다시 바꾸기
+        const weekstable = parsedData[currentDay];
         setCurrentDayData(weekstable); // 추출한 json 데이터 확인 로그
       }
     } catch (error) {

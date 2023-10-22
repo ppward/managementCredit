@@ -200,6 +200,11 @@ export default function Timetable({ route }) {
     setTimetable(remainTimetable);
     storeData(remainTimetable);
   };
+  const resetDataset = () => {
+    setDayOfWeek("Monday");
+    setHours("9:00");
+    setSubject("");
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Text>{deleteOn ? "삭제 모드" : "편집 모드"}</Text>
@@ -297,6 +302,7 @@ export default function Timetable({ route }) {
             <Button
               onPress={() => {
                 addTimetable();
+                resetDataset();
                 setModalVisible(false);
               }}
               disabled={!validation || error}
@@ -310,6 +316,7 @@ export default function Timetable({ route }) {
             <Button
               onPress={() => {
                 updateTimetable();
+                resetDataset();
                 setModalVisible(false);
               }}
               disabled={!validation || error}
@@ -343,6 +350,7 @@ export default function Timetable({ route }) {
           <Button
             onPress={() => {
               deletedTimetable();
+              resetDataset();
               setDeleteModal(false);
             }}
             buttonColor="blue" // 파란색으로 설정
@@ -353,6 +361,7 @@ export default function Timetable({ route }) {
           {/* No 버튼 */}
           <Button
             onPress={() => {
+              resetDataset();
               setDeleteModal(false);
             }}
             buttonColor="red" // 빨간색으로 설정
