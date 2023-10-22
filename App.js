@@ -9,36 +9,9 @@ import Mydatas from "./components/Mydatas";
 const Stack = createStackNavigator();
 
 export default function App() {
-  const [timetableData, setTimetableData] = useState(null);
-
-  const getCurrentDay = () => {
-    const day = new Date().getDay();
-    const days = [
-      "Sunday",
-      "Monday",
-      "Tuesday",
-      "Wednesday",
-      "Thursday",
-      "Friday",
-      "Saturday",
-    ];
-    return days[day];
-  };
-
-  const fetchTimetableData = async () => {
-    try {
-      const data = await AsyncStorage.getItem("@timetable");
-      if (data !== null) {
-        setTimetableData(JSON.parse(data));
-      }
-    } catch (error) {
-      console.error("Error fetching timetable data", error);
-    }
-  };
-
   useEffect(() => {
     //fetchTimetableData();
-    AsyncStorage.clear();
+    //AsyncStorage.clear();
   }, []);
   async function getAllData() {
     try {

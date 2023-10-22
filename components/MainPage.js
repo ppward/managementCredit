@@ -67,10 +67,14 @@ export default function MainPage({ route, navigation }) {
         const allTasks = JSON.parse(storedTasks);
         console.log(allTasks.length);
         const uncheckedTasks = allTasks.filter((task) => !task.checked);
-        const completedTasks = allTasks.length - uncheckedTasks.length;
+        if (allTasks.length !== 0) {
+          const completedTasks = allTasks.length - uncheckedTasks.length;
 
+          setCompletionRate(completedTasks / allTasks.length);
+        } else {
+          setCompletionRate(0);
+        }
         setTasksList(uncheckedTasks);
-        setCompletionRate(completedTasks / allTasks.length);
       }
     } catch (error) {
       console.error(
@@ -148,16 +152,27 @@ export default function MainPage({ route, navigation }) {
           <Card
             style={{
               width: 150,
-              height: 150,
-              margin: 10,
+              height: 200,
+              marginLeft: 10,
               justifyContent: "center",
               alignItems: "space-between",
             }}
           >
             <Title style={{ marginTop: 8, fontSize: 18 }}>나의 과제</Title>
-            <Card.Content>
+            <Card.Content
+              style={{ justifyContent: "center", alignItems: "center" }}
+            >
+              {!isNaN(completionRate) && (
+                <View>
+                  <Progress.Circle
+                    progress={completionRate}
+                    size={100}
+                    showsText={true}
+                    formatText={(progress) => `${Math.round(progress * 100)}%`}
+                  />
+                </View>
+              )}
               {/* ... my data content ... */}
-              {/* ... my data의 내용들 ... */}
             </Card.Content>
 
             <Card.Actions>
@@ -169,7 +184,7 @@ export default function MainPage({ route, navigation }) {
           <Card
             style={{
               width: 150,
-              height: 150,
+              height: 120,
               margin: 10,
               justifyContent: "center",
               alignItems: "space-between",

@@ -90,7 +90,7 @@ export default function App() {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center" }}>
+    <SafeAreaView style={{ flex: 1, justifyContent: "center" }}>
       {jsonData == null && (
         <Button
           title="pick file" // 'tilte' 대신 'title' 사용
@@ -261,7 +261,7 @@ export default function App() {
           </View>
         </ScrollView>
       )}
-    </View>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({

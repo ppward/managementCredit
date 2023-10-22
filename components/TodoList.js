@@ -116,11 +116,18 @@ export default function TodoList(props) {
           <TouchableOpacity onPress={() => openEditModal(index, item.text)}>
             <Card style={{ marginVertical: 10 }}>
               <Card.Title title={item.text} />
-              <View flexDirection="row" justifyContent="space-between">
+              <View flexDirection="row" justifyContent="flex-end">
                 {/* Checkbox and Delete button */}
                 {/* 체크박스와 삭제 버튼 */}
 
-                <Checkbox
+                <Checkbox.Item
+                  label="완료 |"
+                  style={{
+                    backgroundColor: "#CFFFE5",
+                    borderRadius: 15,
+                    width: 105,
+                    borderWidth: 0.2,
+                  }}
                   status={item.checked ? "checked" : "unchecked"}
                   onPress={() => handleToggleCheckbox(index)}
                 />
