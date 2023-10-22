@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import MainPage from "./components/MainPage";
 import Timetable from "./components/Timetable";
 import TodoList from "./components/TodoList";
-
+import Mydatas from "./components/Mydatas";
 const Stack = createStackNavigator();
 
 export default function App() {
@@ -37,13 +37,14 @@ export default function App() {
   };
 
   useEffect(() => {
-    fetchTimetableData();
+    //fetchTimetableData();
+    AsyncStorage.clear();
   }, []);
   async function getAllData() {
     try {
       const keys = await AsyncStorage.getAllKeys();
       const result = await AsyncStorage.multiGet(keys);
-      console.log(result);
+      console.log("all:", result);
     } catch (e) {
       // 에러 처리
       console.error("모든 데이터를 가져오는데 실패했습니다:", e);
@@ -53,18 +54,11 @@ export default function App() {
   getAllData();
   return (
     <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen
-          name="메인"
-          component={MainPage}
-          initialParams={{ day: getCurrentDay(), timetableData: timetableData }}
-        />
-        <Stack.Screen
-          name="시간표"
-          component={Timetable}
-          initialParams={{ timetableData: timetableData }}
-        />
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="메인" component={MainPage} />
+        <Stack.Screen name="시간표" component={Timetable} />
         <Stack.Screen name="과제" component={TodoList} />
+        <Stack.Screen name="학점" component={Mydatas} />
       </Stack.Navigator>
     </NavigationContainer>
   );

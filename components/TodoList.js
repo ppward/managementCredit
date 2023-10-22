@@ -1,20 +1,66 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { View, FlatList, StyleSheet, TouchableOpacity } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { SafeAreaView } from "react-native-safe-area-context";
+
+// Import required components from react native paper
 import {
-  View,
-  Text,
   TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  FlatList,
-} from "react-native";
+  Button,
+  Modal,
+  Portal,
+  Card,
+  Checkbox,
+  Title,
+} from "react-native-paper";
+// Import Checkbox component from react native paper
 
 export default function TodoList(props) {
   const [task, setTask] = useState("");
   const [tasksList, setTasksList] = useState([]);
+  const [isModalVisible, setIsModalVisible] = useState(false);
+  const [editingTask, setEditingTask] = useState({ index: null, text: "" });
+
+  useEffect(() => {
+    fetchTasks();
+  }, []);
+  useEffect(() => {
+    storeTasks();
+    console.log(tasksList);
+  }, [tasksList]);
+
+  const fetchTasks = async () => {
+    try {
+      const storedTasks = await AsyncStorage.getItem("@tasksList");
+      if (storedTasks) {
+        setTasksList(JSON.parse(storedTasks));
+      }
+    } catch (error) {
+      console.error(
+        "AsyncStorage에서 할 일 항목을 가져오는 데 실패했습니다:",
+        error
+      );
+    }
+  };
+
+  const storeTasks = async () => {
+    try {
+      await AsyncStorage.setItem("@tasksList", JSON.stringify(tasksList));
+    } catch (error) {
+      console.error(
+        "AsyncStorage에 할 일 항목을 저장하는 데 실패했습니다:",
+        error
+      );
+    }
+  };
 
   const handleAddTask = () => {
     if (task.trim()) {
-      setTasksList([...tasksList, task]);
+      setTasksList((prevTasks) => [
+        ...prevTasks,
+        { text: task, checked: false },
+      ]);
+
       setTask("");
     }
   };
@@ -23,38 +69,102 @@ export default function TodoList(props) {
     const newTasksList = [...tasksList];
     newTasksList.splice(index, 1);
     setTasksList(newTasksList);
+    storeTasks();
+  };
+
+  const handleToggleCheckbox = (index) => {
+    const newTasksList = [...tasksList];
+    newTasksList[index].checked = !newTasksList[index].checked;
+    setTasksList(newTasksList);
+    storeTasks();
+  };
+
+  const openEditModal = (index, text) => {
+    setEditingTask({ index, text });
+    setIsModalVisible(true);
+  };
+
+  const handleEditTask = () => {
+    const newTasksList = [...tasksList];
+    newTasksList[editingTask.index].text = editingTask.text;
+    setTasksList(newTasksList);
+    setIsModalVisible(false);
+    storeTasks();
   };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>To-Do List</Text>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          placeholder="Enter task"
-          value={task}
-          onChangeText={(text) => setTask(text)}
-        />
-        <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
-          <Text style={styles.addButtonText}>Add</Text>
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={styles.container}>
+      <Title>나의 과제 List</Title>
+      <TextInput
+        label="Enter task"
+        value={task}
+        onChangeText={(text) => setTask(text)}
+        mode="outlined"
+        style={styles.input}
+      />
+      <Button
+        icon="plus"
+        mode="contained"
+        onPress={() => handleAddTask()}
+        style={styles.addButton}
+      >
+        Add
+      </Button>
       <FlatList
-        style={styles.tasksList}
         data={tasksList}
         renderItem={({ item, index }) => (
-          <TouchableOpacity
-            style={styles.taskItem}
-            onPress={() => handleDeleteTask(index)}
-          >
-            <Text style={styles.taskText}>{item}</Text>
+          <TouchableOpacity onPress={() => openEditModal(index, item.text)}>
+            <Card style={{ marginVertical: 10 }}>
+              <Card.Title title={item.text} />
+              <View flexDirection="row" justifyContent="space-between">
+                {/* Checkbox and Delete button */}
+                {/* 체크박스와 삭제 버튼 */}
+
+                <Checkbox
+                  status={item.checked ? "checked" : "unchecked"}
+                  onPress={() => handleToggleCheckbox(index)}
+                />
+                <Button
+                  icon="delete"
+                  compact
+                  onPress={() => handleDeleteTask(index)}
+                >
+                  Delete
+                </Button>
+              </View>
+            </Card>
           </TouchableOpacity>
         )}
         keyExtractor={(item, index) => index.toString()}
       />
-    </View>
+
+      <Modal
+        visible={isModalVisible}
+        onDismiss={() => setIsModalVisible(false)}
+      >
+        <TextInput
+          label="Edit task"
+          value={editingTask.text}
+          onChangeText={(text) => setEditingTask((prev) => ({ ...prev, text }))}
+          mode="outlined"
+          style={{ marginBottom: 20 }}
+        />
+        <Button
+          icon="content-save-edit-outline"
+          mode="contained"
+          onPress={() => handleEditTask()}
+        >
+          Edit Task
+        </Button>
+        <Button
+          icon="close-circle-outline"
+          color="red"
+          onPress={() => setIsModalVisible(false)}
+        >
+          Close
+        </Button>
+      </Modal>
+    </SafeAreaView>
   );
 }
 const styles = StyleSheet.create({
@@ -63,45 +173,11 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: "#fff",
   },
-  heading: {
-    fontSize: 24,
-    fontWeight: "bold",
-    marginBottom: 20,
-  },
-  inputContainer: {
-    flexDirection: "row",
-    marginBottom: 20,
-  },
   input: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 4,
-    marginRight: 10,
-    paddingVertical: 5,
-    paddingHorizontal: 10,
+    marginBottom: 20,
+    backgroundColor: "#f5f5f5",
   },
   addButton: {
-    backgroundColor: "blue",
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 4,
-    justifyContent: "center",
-  },
-  addButtonText: {
-    color: "#fff",
-    fontWeight: "bold",
-  },
-  tasksList: {
-    flex: 1,
-  },
-  taskItem: {
-    backgroundColor: "#f2f2f2",
-    padding: 15,
-    borderRadius: 4,
-    marginBottom: 10,
-  },
-  taskText: {
-    fontSize: 16,
+    marginBottom: 20,
   },
 });

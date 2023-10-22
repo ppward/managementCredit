@@ -9,6 +9,7 @@ import {
   TouchableOpacity,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { Card, Title, Paragraph, Button, IconButton } from "react-native-paper";
 // Get the screen width and height
 import * as Progress from "react-native-progress";
 
@@ -36,6 +37,8 @@ export default function MainPage({ route, navigation }) {
     ];
     return days[day];
   };
+  const [tasksList, setTasksList] = React.useState([]);
+  const [completionRate, setCompletionRate] = React.useState(0);
   const [currentDayData, setCurrentDayData] = React.useState([]);
   const [timetableData, setTimetableData] = React.useState({});
 
@@ -48,91 +51,160 @@ export default function MainPage({ route, navigation }) {
         const currentDay = getCurrentDay(); //오늘의 요일 받아오기
         console.log("날짜 :" + currentDay); // 요일 확인 로그
         // 현재 요일에 맞는 데이터 설정
-        setCurrentDayData(parsedData[currentDay]); //오늘의 요일에 맞는 데이터를 json에서 추출
-        const weekstable = parsedData[currentDay];
+        setCurrentDayData(parsedData["Monday"]); //오늘의 요일에 맞는 데이터를 json에서 추출 나중에 currentDay로 다시 바꾸기
+        const weekstable = parsedData["Monday"];
         setCurrentDayData(weekstable); // 추출한 json 데이터 확인 로그
       }
     } catch (error) {
       console.error("Error fetching timetable data", error);
     }
   };
+
+  const fetchTasks = async () => {
+    try {
+      const storedTasks = await AsyncStorage.getItem("@tasksList");
+      if (storedTasks) {
+        const allTasks = JSON.parse(storedTasks);
+        console.log(allTasks.length);
+        const uncheckedTasks = allTasks.filter((task) => !task.checked);
+        const completedTasks = allTasks.length - uncheckedTasks.length;
+
+        setTasksList(uncheckedTasks);
+        setCompletionRate(completedTasks / allTasks.length);
+      }
+    } catch (error) {
+      console.error(
+        "AsyncStorage에서 할 일 항목을 가져오는 데 실패했습니다:",
+        error
+      );
+    }
+  };
+
   React.useEffect(() => {
     console.log("json데이터:", timetableData);
     console.log("대시보드데이터1 :", currentDayData);
-  }, [currentDayData]);
+    console.log("task2", tasksList);
+    console.log("완성율:", completionRate);
+  }, [currentDayData, tasksList]);
+
   React.useEffect(() => {
+    const onFocused = () => {
+      fetchTimetableData();
+      fetchTasks();
+    };
+
     // Register a focus event listener
-    const unsubscribe = navigation.addListener("focus", fetchTimetableData);
+    const unsubscribe = navigation.addListener("focus", onFocused);
 
     // Clean up on unmount / before re-rendering
     return unsubscribe;
   }, [navigation]);
   //
   const progress = 0.5; // 50% 진행
+
   return (
     <View style={styles.container}>
-      <View style={{ flexDirection: "row", marginTop: 40 }}>
-        <TouchableOpacity
-          onLongPress={() => {
-            navigation.navigate("시간표");
-          }}
-        >
-          <View style={styles.longWidget}>
-            {currentDayData.length === 0 ? (
-              <Text>오늘 일정이 없습니다</Text>
+      <View style={{ flexDirection: "row", height: 330 }}>
+        <Card style={{ ...styles.cardStyle, height: 330 }}>
+          <Card.Content>
+            <Title>시간표</Title>
+            {!currentDayData || currentDayData.length === 0 ? (
+              <Paragraph>오늘 일정이 없습니다</Paragraph>
             ) : (
               currentDayData.map((item, index) => (
-                <View key={index}>
+                <View
+                  key={index}
+                  style={{
+                    borderRadius: 12,
+                    backgroundColor: "#CFFFE5",
+                    marginBottom: 4,
+                  }}
+                >
                   <Text>Subject: {item.subject}</Text>
                   <Text>Time: {item.time}</Text>
                 </View>
               ))
             )}
-          </View>
-        </TouchableOpacity>
+          </Card.Content>
 
-        <View style={styles.squareWidgetsContainer}>
-          <TouchableOpacity
-            style={[styles.squareWidget, styles.topSquareWidget]}
-            onLongPress={() => {
-              navigation.navigate("과제");
+          {/* You can replace onLongPress with onPress if you want */}
+          {/* 원하는 경우 onLongPress를 onPress로 바꿀 수 있습니다 */}
+          <Card.Actions>
+            <Button onPress={() => navigation.navigate("시간표")}>
+              자세히 보기
+            </Button>
+          </Card.Actions>
+        </Card>
+
+        {/* Todo List and My Data sections */}
+        {/* Todo List와 My Data 섹션들 */}
+        <View style={{ flex: 1 }}>
+          {/* Todo List Section */}
+          {/* Todo List 섹션 */}
+
+          {/* My Data Section */}
+          {/* My Data 섹션*/}
+
+          <Card
+            style={{
+              width: 150,
+              height: 150,
+              margin: 10,
+              justifyContent: "center",
+              alignItems: "space-between",
             }}
           >
-            <View>
-              <Text>Square Widget 1</Text>
-            </View>
-          </TouchableOpacity>
-          <View style={styles.squareWidget}>
-            <Text>Square Widget 2</Text>
-          </View>
-        </View>
+            <Title style={{ marginTop: 8, fontSize: 18 }}>나의 과제</Title>
+            <Card.Content>
+              {/* ... my data content ... */}
+              {/* ... my data의 내용들 ... */}
+            </Card.Content>
 
-        {/* Progress Bar */}
-        {/* 진행률 바 */}
-        {/* I moved this part to inside the second View so it won't be affected by the FlatList */}
-        {/* 이 부분을 두 번째 View 내부로 옮겨서 FlatList에 의해 영향받지 않도록 했습니다 */}
+            <Card.Actions>
+              <Button onPress={() => navigation.navigate("과제")}>
+                자세히 보기
+              </Button>
+            </Card.Actions>
+          </Card>
+          <Card
+            style={{
+              width: 150,
+              height: 150,
+              margin: 10,
+              justifyContent: "center",
+              alignItems: "space-between",
+            }}
+          >
+            <Title style={{ marginTop: 8, fontSize: 18 }}>나의 학점 정보</Title>
+            <Card.Content>
+              {/* ... my data content ... */}
+              {/* ... my data의 내용들 ... */}
+            </Card.Content>
+
+            <Card.Actions>
+              <Button onPress={() => navigation.navigate("학점")}>
+                자세히 보기
+              </Button>
+            </Card.Actions>
+          </Card>
+        </View>
       </View>
 
-      {/* The FlatList component should be outside the ScrollView component to avoid nesting error */}
-      {/* FlatList 컴포넌트는 중첩 오류를 피하기 위해 ScrollView 컴포넌트 바깥에 있어야 합니다 */}
-
-      {/* keyExtractor should provide a unique key, so we return item.id directly */}
-      {/* keyExtractor는 고유한 키를 제공해야 하므로 item.id 를 그대로 반환합니다 */}
-
-      {/* ListHeaderComponent prop is used to display additional component above the list */}
-
-      {/* 리스트 위에 추가적인 컴포넌트를 표시하는데 사용됩니다 */}
-      <Text>Progress: {progress * 100}%</Text>
-      <Progress.Bar progress={progress} width={200} />
-      <FlatList
-        data={todoList}
-        renderItem={({ item }) => (
-          <Text style={{ borderWidth: 2, marginTop: 10 }}>
-            {item.title} - {item.completed ? "Completed" : "Incomplete"}
-          </Text>
-        )}
-        keyExtractor={(item) => item.id}
-      />
+      <View style={{ margin: 5 }}>
+        <FlatList
+          data={tasksList}
+          renderItem={({ item, index }) => (
+            <Card style={{ marginVertical: 5 }}>
+              <Card.Content>
+                {/* Assuming `item.text` is the task description */}
+                {/* `item.text`가 할 일 설명이라고 가정합니다 */}
+                <Paragraph>{item.text}</Paragraph>
+              </Card.Content>
+            </Card>
+          )}
+          keyExtractor={(item, index) => index.toString()}
+        />
+      </View>
     </View>
   );
 }
@@ -143,7 +215,6 @@ const styles = StyleSheet.create({
     marginTop: 45,
     flexDirection: "column",
     padding: 10,
-    justifyContent: "space-between",
   },
 
   longWidget: {
@@ -175,5 +246,53 @@ const styles = StyleSheet.create({
 
   topSquareWidget: {
     marginBottom: 5,
+  },
+  //카드 스타일
+  mainContainer: {
+    flex: 0.8, // 화면의 80% 차지
+    flexDirection: "row",
+  },
+  timeTableCard: {
+    flex: 1,
+    margin: 5,
+    backgroundColor: "#ADD8E6",
+  },
+  todoListCard: {
+    flex: 0.5,
+    margin: 5,
+    marginBottom: 2.5,
+    backgroundColor: "#FFB6C1",
+  },
+  myDataCard: {
+    flex: 0.5,
+    margin: 5,
+    marginTop: 2.5,
+    backgroundColor: "#98FB98",
+  },
+  uncompletedTasksList: {
+    flex: 0.2, // 화면의 20% 차지
+    marginTop: 10,
+  },
+  taskItem: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderColor: "#ccc",
+  },
+  taskText: {
+    fontSize: 16,
+  },
+  //
+  upperSection: {
+    flex: 0.8,
+    flexDirection: "row",
+  },
+
+  cardStyle: {
+    width: "48%",
+    justifyContent: "space-between",
+  },
+
+  lowerSection: {
+    flex: 0.2,
   },
 });
